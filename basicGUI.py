@@ -23,14 +23,16 @@ state.pack()
 button = Button(root, text="save", command = lambda:clicked())
 button.pack(side=LEFT, padx=10, pady=10)
 
-current_datettime = datetime.datetime.now().strftime("%m-%d %H-%M-%S")
-str_current_datetime = str(current_datettime)
+current_datetime = datetime.datetime.now().strftime("%m-%d %H-%M-%S")
+str_current_datetime = str(current_datetime)
 file_name = str_current_datetime+".txt"
 
 with open(file_name, 'w') as file:
     file.write("")
 
 def time_update():
+    current_datetime = datetime.datetime.now().strftime("%m-%d %H-%M-%S")
+    str_current_datetime = str(current_datetime)
     with open(file_name, 'a') as file:
         file.write(str_current_datetime + "\n")
     root.after(1000, time_update)
