@@ -13,15 +13,18 @@ def clicked():
         state.config(text = "saving")
     else:
         state.config(text = "idle")
-    
-display = Label(root, height = 2, width = 10, text = "0", fg="white", bg = "black")
-display.pack(side=LEFT, padx=10, pady=10)
 
-state = Label(root, height = 2, width = 10, text = "0", fg="white", bg = "black")
-state.pack()
+main_frame = Frame(root)
+main_frame.pack(pady=100)
 
-button = Button(root, text="save", command = lambda:clicked())
-button.pack(side=LEFT, padx=10, pady=10)
+display = Label(main_frame, height=2, width=10, text="0", fg="white", bg="black")
+display.pack(side=LEFT, padx=10)
+
+button = Button(main_frame, text="save", command=clicked)
+button.pack(side=LEFT, padx=10)
+
+state = Label(root, height=2, width=10, text="idle", fg="white", bg="black")
+state.pack(pady=10)
 
 current_datetime = datetime.datetime.now().strftime("%m-%d %H-%M-%S")
 str_current_datetime = str(current_datetime)
