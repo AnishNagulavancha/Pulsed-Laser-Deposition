@@ -56,12 +56,14 @@ def read_encoder_angle(serial_port):
     
     except Exception as e:
         print(f"Error reading angle: {e}")
+        return None
     finally:
         ser.close()
 
 if __name__ == "__main__":
     serial_port = 'COM9'
     previous_angle = None
+    revolution = 0
 
     # Reset the encoder to start from zero
     reset_encoder(serial_port)
@@ -72,13 +74,23 @@ if __name__ == "__main__":
         
         if current_angle is not None:
             if previous_angle is not None:
-                # Calculate the difference between the current and previous angles
-                angle_difference = current_angle - previous_angle
-                print(f"Previous angle: {previous_angle}")
-                print(f"Current angle: {current_angle}")
-                print(f"Angle rotated: {angle_difference} degrees")
+                # Check for clockwise or counterclockwise rotation across the 360/0 boundary
+                if previous_angle > current_angle and (previous_angle - current_angle) > 180:
+                    revolution += 1
+                    print(f"Completed one clockwise revolution. Total revolutions: {revolution}")
+                elif current_angle > previous_angle and (current_angle - previous_angle) > 180:
+                    revolution -= 1
+                    print(f"Completed one counterclockwise revolution. Total revolutions: {revolution}")
+
+                # Calculate the absolute angle considering the number of revolutions
+                absolute_angle = revolution * 360 + current_angle
+
+                # Display previous and current angles, along with the absolute angle
+                print(f"Previous angle: {previous_angle} degrees")
+                print(f"Current angle: {current_angle} degrees")
+                print(f"Absolute angle: {absolute_angle} degrees")
             else:
-                print(f"Current angle: {current_angle} (Initial reading)")
+                print(f"Current angle: {current_angle} degrees (Initial reading)")
             
             # Update the previous angle
             previous_angle = current_angle
