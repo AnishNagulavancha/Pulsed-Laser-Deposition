@@ -1,12 +1,11 @@
 import serial
 import time
 from tkinter import *
-import datetime
 
 class EncoderGUI:
     def __init__(self, serial_port):
         self.serial_port = serial_port
-        self.previous_angle = None
+        self.previous_angle = 0
         self.revolution = 0
 
         # Set up the main window
@@ -52,8 +51,6 @@ class EncoderGUI:
             reset_command = f'D{encoder_address}LM{self.calculate_checksum([0x44, 0x30, 0x31, 0x4C, 0x4D])}\r'.encode('ascii')
             ser.write(reset_command)
 
-            print(f"Raw response (bytes): {response}")
-
             # Receive the reset response
             response = ser.read(16)
 
@@ -69,7 +66,7 @@ class EncoderGUI:
             ser.close()
 
         # Reset internal state
-        self.previous_angle = None
+        self.previous_angle = 0
         self.revolution = 0
         self.revolution_label.config(text="Total revolutions: 0")
 
@@ -92,7 +89,7 @@ class EncoderGUI:
             if len(response) == 16:
                 # Extract the angle data part
                 angle_data = response[5:15].decode('ascii').strip()
-                angle = int(angle_data)
+                angle = int(angle_data) % 360  # Wrap the angle within the 0-360 range
                 return angle
             else:
                 raise Exception("Incorrect response data length")
@@ -105,26 +102,25 @@ class EncoderGUI:
 
     def update_angle(self):
         current_angle = self.read_encoder_angle()
-        
-        if current_angle is not None:
-            if self.previous_angle is not None:
-                if self.previous_angle > current_angle and (self.previous_angle - current_angle) > 180:
-                    self.revolution += 1
-                elif current_angle > self.previous_angle and (current_angle - self.previous_angle) > 180:
-                    self.revolution -= 1
 
-                absolute_angle = self.revolution * 360 + current_angle
-                self.absolute_angle_label.config(text=f"Absolute angle: {absolute_angle} degrees")
-            else:
-                self.absolute_angle_label.config(text=f"Current angle: {current_angle} degrees (Initial reading)")
-            
+        if current_angle is not None:
+            # If current angle is less than the previous angle, it indicates a full revolution
+            if current_angle < self.previous_angle:
+                self.revolution += 1  # Increase revolution count on wrap-around
+
+            # Calculate absolute angle as revolutions * 360 + current angle
+            absolute_angle = self.revolution * 360 + current_angle
+
+            # Update labels with the current angle and revolution count
+            self.absolute_angle_label.config(text=f"Absolute angle: {absolute_angle} degrees")
             self.angle_label.config(text=f"Current angle: {current_angle} degrees")
             self.revolution_label.config(text=f"Total revolutions: {self.revolution}")
 
+            # Update previous angle for the next iteration
             self.previous_angle = current_angle
 
         # Schedule the next update
-        self.root.after(1000, self.update_angle)
+        self.root.after(100, self.update_angle)
 
 if __name__ == "__main__":
     serial_port = 'COM9'  # Replace with your actual serial port
