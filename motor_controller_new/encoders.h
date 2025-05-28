@@ -1,0 +1,1 @@
+#define encoder_count1          (36)
